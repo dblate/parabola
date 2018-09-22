@@ -6,7 +6,7 @@
         .c {
             position: absolute;
             left: 0;
-            top: 200px;
+            bottom: 40%;
         }
         .e {
             position: absolute;
@@ -47,22 +47,59 @@
         }
 
         const p = new Parabola(50, 60);
-
         const c = document.getElementById('container');
-        let counter = 1;
-        setInterval(() => {
-            const t = counter * 500 / 1000;
-            counter = counter + 1;
-            const x = p.getX(t);
-            const y = p.getY(t);
-            console.log(x, y);
-            const d = document.createElement('div');
-            d.className = 'e';
-            d.style.left = x + 'px';
-            d.style.bottom = y + 'px';
 
-            c.appendChild(d);
-        }, 500);
+        const duration = 10000;
+        animation({
+            duration: duration,
+            onProgress(percent) {
+                const t = duration * percent / 1000;
+                const x = p.getX(t);
+                const y = p.getY(t);
+                console.log(x, y);
+
+                const d = document.createElement('div');
+                d.className = 'e';
+                d.style.left = x + 'px';
+                d.style.bottom = y + 'px';
+
+                c.appendChild(d);
+            }
+        });
+
+        /**
+         * 逐帧动画
+         *
+         * @param {Object} options 配置项
+         * @param {number=} options.duration 总时长，默认 400ms
+         * @param {Function=} options.onProgress 动画执行过程中的回调函数，会收到一个 percent 参数，表明当前进度
+         * @param {Function=} options.onEnd 动画执行完成后的回调函数
+         */
+        function animation(options) {
+            let start;
+            const noop = function () {};
+            const duration = options.duration || 400;
+            const onProgress = options.onProgress || noop;
+            const onEnd = options.onEnd || noop;
+
+            function step(timestamp) {
+                if (!start) {
+                    start = timestamp;
+                }
+
+                const progress = timestamp - start;
+                const percent = progress / duration;
+                onProgress(percent);
+
+                if (progress < duration) {
+                    requestAnimationFrame(step);
+                } else {
+                    onEnd();
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
     </script>
 </body>
 </html>
